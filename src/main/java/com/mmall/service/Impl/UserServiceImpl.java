@@ -8,6 +8,8 @@ import com.mmall.pojo.User;
 import com.mmall.service.IUserService;
 import com.mmall.util.MD5Util;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,8 @@ import java.util.UUID;
 public class UserServiceImpl implements IUserService {
     @Autowired
     private UserMapper userMapper;
+
+    private Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     @Override
     public ServerResponse<User> login(String username, String password)
     {
@@ -62,6 +66,7 @@ public class UserServiceImpl implements IUserService {
         if(StringUtils.isNotBlank(str)) {
             if(Const.USERNAME.equals(type)) {
                 int resultCount = userMapper.checkUsername(str);
+                logger.info("{ }",resultCount);
                 if(resultCount > 0) {
                     return ServerResponse.createByErrorMessage("用户名已存在");
                 }
@@ -81,7 +86,7 @@ public class UserServiceImpl implements IUserService {
 
     public ServerResponse selectQuestion(String username) {
         ServerResponse response = this.checkValid(username,Const.USERNAME);
-        if(!response.isSuccess()) {
+        if(response.isSuccess()) {
             return ServerResponse.createByErrorMessage("用户名不存在");
         }
         String question = userMapper.selectQuestionByUsername(username);
@@ -91,8 +96,8 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createByErrorMessage("找回密码的问题是空的");
     }
 
-    public ServerResponse checkAnswer(String username,String password,String answer){
-        int resultCount = userMapper.checkAnswer(username,password,answer);
+    public ServerResponse checkAnswer(String username,String question,String answer){
+        int resultCount = userMapper.checkAnswer(username,question,answer);
         if(resultCount > 0) {
             String forgetToken = UUID.randomUUID().toString();
             TokenCache.setKey(TokenCache.TOKEN_PREFIX+username,forgetToken);
@@ -109,7 +114,7 @@ public class UserServiceImpl implements IUserService {
         if(response.isSuccess()) {
             return ServerResponse.createByErrorMessage("用户名不存在");
         }
-        String token = TokenCache.getKey(TokenCache.TOKEN_PREFIX);
+        String token = TokenCache.getKey(TokenCache.TOKEN_PREFIX+username);
         if(StringUtils.isBlank(token)) {
             return ServerResponse.createByErrorMessage("token无效或者已经过期");
         }
@@ -165,5 +170,17 @@ public class UserServiceImpl implements IUserService {
             return ServerResponse.createBySuccess(user);
         }
         return  ServerResponse.createByErrorMessage("用户不存在");
+    }
+
+    /**
+     * 校验是否是管理员
+     * @param user
+     * @return
+     */
+    public ServerResponse checkAdminRole(User user) {
+        if(user != null && user.getRole().intValue() == Const.Role.ROLE_ADMIN) {
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
     }
 }

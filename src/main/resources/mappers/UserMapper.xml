@@ -189,14 +189,15 @@
   <select id="checkAnswer" resultType="int" parameterType="map">
     select count(1) from mmall_user
     where username = #{username}
-    and password = #{password}
+    and question = #{question}
     and answer = #{answer}
   </select>
 
   <update id="updatePasswordByUsername" parameterType="map">
     UPDATE mmall_user
     set
-    password = #{passwordNew,jdbcType=VARCHAR},updatetime = now()
+    password = #{passwordNew,jdbcType=VARCHAR},
+    update_time = now()
     where username = #{username}
   </update>
 </mapper>

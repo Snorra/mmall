@@ -78,8 +78,8 @@ public class UserController {
 
     @RequestMapping(value = "forget_check_answer.do",method = RequestMethod.POST)
     @ResponseBody
-    public ServerResponse checkAnswer(String username,String password,String answer) {
-        return iUserService.checkAnswer(username,password,answer);
+    public ServerResponse checkAnswer(String username,String question,String answer) {
+        return iUserService.checkAnswer(username,question,answer);
     }
 
     @RequestMapping(value = "forget_reset_password.do")
@@ -90,7 +90,7 @@ public class UserController {
 
     @RequestMapping(value = "reset_password.do")
     @ResponseBody
-    public ServerResponse resetPassword(String username,String passwordOld,String passwordNew,HttpSession session) {
+    public ServerResponse resetPassword(String passwordOld,String passwordNew,HttpSession session) {
         User user = (User)session.getAttribute(Const.CURRENT_USER);
         if(user == null) {
             return ServerResponse.createByErrorMessage("未登录");
